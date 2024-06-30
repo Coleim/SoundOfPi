@@ -1,0 +1,28 @@
+.container {
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    /* transform: translateX(45%); */
+}
+
+.notes {
+    width: 0px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    margin-left: auto;
+    margin-right: auto;
+    justify-content: start;
+    align-items: center;
+    transform: translateX(45%);
+}
+
+.number-note {
+    padding: 10px;
+    font-size: 30px;
+}
+.number-note:first-child {
+    font-size: 60px;
+    margin-left: -30px;
+    color: deeppink;
+}
