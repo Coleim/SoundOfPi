@@ -8,7 +8,7 @@ function App() {
 
   return (
     <div className="main">
-      <h1>Sound of</h1>
+      <h1>Sound of Math</h1>
       {/* <BaseSelection /> */}
       <ConstantSelection />
       {/* Component to Display the note currently played as a number and as a note */}

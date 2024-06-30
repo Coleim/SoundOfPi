@@ -1,45 +1,45 @@
 import './Player.css'
 import * as Tone from "tone";
 import { useStore } from "@tanstack/react-store";
-import { musicSheet } from './music-sheet';
+import { musicSheet, startMusic, stopMusic } from './music-sheet';
 import { popNote } from './music-sheet';
-import { FaPlay, FaPause } from "react-icons/fa6";
-import { useRef, useState } from 'react';
+import { FaPlay, FaPause, FaStop } from "react-icons/fa6";
+import { useEffect, useRef, useState } from 'react';
 
 function Player() {
 
-    const notes = useStore(musicSheet, (state) => state.notes)
-    const [running, setRunning] = useState(false)
+    const notes = useStore(musicSheet, (state) => state.notes.first(10))
+    const playing = useStore(musicSheet, (state) => state.playing)
+    const [paused, setPaused] = useState(true)
+    const headNote: any = useRef(notes.at(0))
+    const nextNote: any = useRef(notes.at(1))
     const loop: any = useRef(undefined)
-    const currentInstrument: any = useRef(create('guitar-acoustic'))
-    const currentChordInstrument: any = useRef(create('guitar-acoustic'))
+    const currentInstrument: any = useRef()
+    const currentChordInstrument: any = useRef()
     const chordsLoop: any = useRef(undefined)
+    const pausedRef = useRef(paused)
     
+    useEffect(() => {
+        changeChordInstrument('guitar-acoustic');
+        changeInstrument('guitar-acoustic');
+    }, [])
 
-    // setCurrentInstrument(new Tone.Sampler({
-    //     urls: {
-    //         C4: "C4.mp3",
-    //         "D#4": "Ds4.mp3",
-    //         "F#4": "Fs4.mp3",
-    //         A4: "A4.mp3",
-    //     },
-    //     release: 1,
-    //     baseUrl: "https://tonejs.github.io/audio/salamander/",
-    // }).toDestination());
+    useEffect(() => {
+        headNote.current = notes.at(0)
+        nextNote.current = notes.at(1)
+    }, [notes])
 
-
-    // const notesAssociation = [
-    //     "A3",  // C
-    //     "B3",  // D
-    //     "C3",  // E
-    //     "D3",  // G
-    //     "E3",  // A
-    //     "F3",  // C (octave)
-    //     "G3",  // D (octave)
-    //     "A4",  // E (octave)
-    //     "B4",  // G (octave)
-    //     "C4"   // A (octave)
-    // ];
+    useEffect(() => {
+        if(playing) {
+            setPaused(false)
+            pausedRef.current = false;
+            play()
+        } else {
+            setPaused(true)
+            pausedRef.current = true
+            stop()
+        }
+    }, [playing])
 
     const notesAssociation = [
         "C3",
@@ -73,38 +73,29 @@ function Player() {
     ];
 
     function play() {
-        if(notes.size === 0) return;
+        if(notes.length === 0) return;
         if (!loop.current || loop.current.state === "stopped") {
             loop.current = new Tone.Loop(function (time) {
-                const headNote = notes.head();
-                const nextNote = notes.at(1);
-                if( headNote !== undefined) {
-                    let duration = "4n";
-                    if(nextNote !== undefined) {
-                        duration = notesDuration[nextNote];
+                if(!pausedRef.current) {
+                    if( headNote.current !== undefined) {
+                        let duration = "4n";
+                        if(nextNote.current !== undefined) {
+                            duration = notesDuration[nextNote.current];
+                        }
+                        currentInstrument.current.triggerAttackRelease(notesAssociation[headNote.current], duration, time);
+                        loop.current.interval = duration;
+                        popNote();
+                    } else {
+                        stop();
                     }
-                    currentInstrument.current.triggerAttackRelease(notesAssociation[headNote], duration, time);
-                    loop.current.interval = duration;
-                    popNote();
-                } else {
-                    pause();
                 }
             }, "4n").start(0);
-            setRunning(true);
-
 
             chordsLoop.current = new Tone.Loop(function (time) {
-                const headNote = notes.head();
-                if( headNote !== undefined) {
-                    currentChordInstrument.current.triggerAttackRelease(minorChordsAssociation[headNote], "2n", time);
+                if( !pausedRef.current && headNote.current !== undefined) {
+                    currentChordInstrument.current.triggerAttackRelease(minorChordsAssociation[headNote.current], "2n", time);
                 }
             }, "1n").start(0);
-            // chordsMajorLoop.current = new Tone.Loop(function (time) {
-            //     const headNote = notes.head();
-            //     if( headNote !== undefined) {
-            //         currentInstrument.current.triggerAttackRelease(majorChordsAssociation[headNote], "2n", time);
-            //     }
-            // }, "1n").start(0);
 
             Tone.getTransport().bpm.value = 157 //157
             Tone.getTransport().start();
@@ -112,19 +103,33 @@ function Player() {
     }
 
     function pause() {
-        loop.current.stop();
-        chordsLoop.current.stop();
-        // chordsMajorLoop.current.stop();
-        
-        setRunning(false);
+        setPaused(true);
+        pausedRef.current = true;
+    }
+    function unpause() {
+        setPaused(false);
+        pausedRef.current = false;
     }
 
+    function stop() {
+        setPaused(false);
+        pausedRef.current = false;
+        if (loop.current && loop.current.state === "started") {
+            loop.current.stop();
+            chordsLoop.current.stop();
+            Tone.getTransport().stop();
+            Tone.getTransport().position = 0;
+            Tone.getTransport().cancel();
+        }
+    }
+
+
     function changeChordInstrument(instrument: string) {
-        if(running) pause();
+        pause();
         currentChordInstrument.current = createInstrument(instrument);
     }
     function changeInstrument(instrument: string) {
-        if(running) pause();
+        pause();
         currentInstrument.current = createInstrument(instrument);
     }
     function createInstrument(instrument: string) {
@@ -150,34 +155,35 @@ function Player() {
             case 'organ':
                 return create('organ');
             case "Tone.Synth":
-                if(running) play();
+                unpause();
                 return new Tone.PolySynth(Tone.Synth).toDestination();
             case "Tone.AMSynth":
-                if(running) play();
+                unpause();
                 return new Tone.PolySynth(Tone.AMSynth).toDestination();
             case "Tone.FMSynth":
-                if(running) play();
+                unpause();
                 return new Tone.PolySynth(Tone.FMSynth).toDestination();
             case "Tone.MembraneSynth":
-                if(running) play();
-                return new Tone.MembraneSynth().toDestination();
+                unpause();
+            return new Tone.MembraneSynth().toDestination();
             case "Tone.MetalSynth":
-                if(running) play();
+                unpause();
                 return new Tone.MetalSynth().toDestination();
             case "Tone.MonoSynth":
-                if(running) play();
+                unpause();
                 return new Tone.MonoSynth().toDestination();
             case "Tone.PluckSynth":
-                if(running) play();
+                unpause();
                 return new Tone.PluckSynth().toDestination();
             case "Tone.PolySynth":
-                if(running) play();
+                unpause();
                 return new Tone.PolySynth().toDestination();
         }
         
     }
 
     function create(instrument: string) {
+
         return new Tone.Sampler({
             urls: {
                 C3: "C3.mp3"
@@ -185,9 +191,7 @@ function Player() {
             release: 1,
             baseUrl: "https://coleim.github.io/tonejs-instruments/samples/" + instrument + "/",
             onload: () => {
-                if (running) {
-                    play();
-                }
+                unpause();
             }
         }).toDestination();
     }
@@ -200,9 +204,7 @@ function Player() {
             release: 1,
             baseUrl: "https://coleim.github.io/tonejs-instruments/samples/guitar-nylon/",
             onload: () => {
-                if (running) {
-                    play();
-                }
+                unpause();
             }
         }).toDestination();
     }
@@ -227,9 +229,7 @@ function Player() {
             release: 1,
             baseUrl: "https://coleim.github.io/tonejs-instruments/samples/violin/",
             onload: () => {
-                if (running) {
-                    play();
-                }
+                unpause();
             }
         }).toDestination();
     }
@@ -273,9 +273,7 @@ function Player() {
             release: 1,
             baseUrl: "https://coleim.github.io/tonejs-instruments/samples/saxophone/",
             onload: () => {
-                if (running) {
-                    play();
-                }
+                unpause();
             }
         }).toDestination();
     }
@@ -295,20 +293,20 @@ function Player() {
             release: 1,
             baseUrl: "https://coleim.github.io/tonejs-instruments/samples/xylophone/",
             onload: () => {
-                if (running) {
-                    play();
-                }
+                unpause();
             }
         }).toDestination();
     }
 
     return (
         <>
-            { !running ? 
-                <button onClick={play}><FaPlay /></button> 
-                : 
-                <button onClick={pause}><FaPause /></button>
+            { !playing ? 
+                <button onClick={ startMusic }><FaPlay /></button>
+                :
+                    paused ? <button onClick={ unpause }><FaPlay /></button> 
+                    : <button onClick={ pause }><FaPause /></button>
             }
+            <button onClick={ stopMusic }><FaStop /></button>
 
             <div>
                 <h3>Select Instrument</h3>

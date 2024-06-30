@@ -4,27 +4,53 @@ import { Queue } from "./queue";
 
 // You can use @tanstack/store outside of React components too!
 export const musicSheet = new Store({
-  notes: new Queue<number>()
+  notes: new Queue<number>(),
+  playing: false
 });
 
-export const resetMusicSheet = () => {
+// export const updateLastIndexLoaded = (lastIndex: number) => {
+//   musicSheet.setState((state) => {
+//     return {
+//       ...state,
+//       lastIndexLoaded: lastIndex
+//     };
+//   });
+// };
+
+export const stopMusic = () => {
   musicSheet.setState((state) => {
-    state.notes.clear()
-    // console.log("resetMusicSheet: ", state.notes)
     return {
       ...state,
-      notes: state.notes
+      playing: false
+    };
+  });
+};
+export const startMusic = () => {
+  musicSheet.setState((state) => {
+    return {
+      ...state,
+      playing: true
     };
   });
 };
 
-export const updateMusicSheet = (note: number) => {
+
+export const resetMusicSheet = () => {
   musicSheet.setState((state) => {
-    state.notes.push(note)
-    // console.log("updateMusicSheet: ", state.notes)
     return {
       ...state,
-      notes: state.notes
+      notes: new Queue<number>(),
+      // lastIndexLoaded: 0
+    };
+  });
+};
+
+export const updateMusicSheet = (notes: number[]) => {
+  musicSheet.setState((state) => {
+    notes.forEach((note) => state.notes.push(note))
+    return {
+      ...state,
+      notes: state.notes,
     };
   });
 };

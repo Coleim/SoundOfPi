@@ -1,32 +1,67 @@
-import { resetMusicSheet, updateMusicSheet } from "./music-sheet"
+import { resetMusicSheet, stopMusic, updateMusicSheet } from "./music-sheet"
+import { base } from "./base"
+import { musicSheet } from "./music-sheet"
+import { useStore } from "@tanstack/react-store"
+import { useEffect, useRef, useState } from "react"
+
 import './ConstantSelection.css'
 import piLogo from './assets/Pi-symbol.png'
 import expoLogo from './assets/expo.png'
 import phiLogo from './assets/nombre-d-or-phi-01.png'
 
-// import piSon from './assets/pi.json'
-import piSon from './assets/pi_small.json'
-import eSon from './assets/e_small.json'
+import piSon from './assets/pi.json'
+import eSon from './assets/e.json'
 import phiSon from './assets/phi_small.json'
-import { base } from "./base"
-import { useStore } from "@tanstack/react-store"
 
 
 function ConstantSelection() {
 
     const currentBase: number = useStore(base, (state) => state.currentBase);
+    const queueSize: number = useStore(musicSheet, (state) => state.notes.size);
+    const playing: boolean = useStore(musicSheet, (state) => !!state.playing);
+    const [sheet, setSheet] = useState();
+    const [loading] = useState(false);
+    const lastIndexLoaded = useRef(0)
 
     function convertBase10ToBase(number: number, base: number): string[] {
         return number.toString(base).split("")
     }
 
-    function load(sheet: any) {
-        resetMusicSheet()
-        for ( let i = 0; i < sheet.number.length; i++) {
-            const nums = convertBase10ToBase(Number(sheet.number[i]), currentBase);
-            nums.forEach((num) => updateMusicSheet(Number(num)))
-           // updateMusicSheet()
+    useEffect(() => {
+        if(sheet === undefined) return
+        if(!playing) load(sheet)
+    }, [playing])
+
+    useEffect(() => {
+        if(loading) return
+        if(sheet === undefined) return
+        if(queueSize < 20) {
+            loadChunk(sheet)
         }
+    }, [queueSize])
+
+    function load(sheet: any) {
+        setSheet(sheet)
+        resetMusicSheet()
+        stopMusic()
+        lastIndexLoaded.current = 0
+        loadChunk(sheet)
+    }
+
+    function loadChunk(sheet: any) {
+        const steps = 200
+        const maxLen = sheet.number.length > (lastIndexLoaded.current+steps) ? (lastIndexLoaded.current+steps) : sheet.number.length
+        console.log(sheet.number.length)
+        console.log(maxLen)
+        let numsToInsert = [];
+        for ( let i = 0 + lastIndexLoaded.current; i < maxLen; i++) {
+            const nums = convertBase10ToBase(Number(sheet.number[i]), currentBase);
+            for(let n = 0 ; n < nums.length; n++) {
+                numsToInsert.push(Number(nums[n]))
+            }
+        }
+        updateMusicSheet(numsToInsert)
+        lastIndexLoaded.current = lastIndexLoaded.current + steps
     }
     return (
         <div className="all-constants">
@@ -48,20 +83,6 @@ function ConstantSelection() {
                 </button>
                 <span>Nombre d'or</span>
             </div>
-            {/* <div className="constant-container">
-                <button className="const-btn">
-                    <img src={phiLogo} onClick={ loadPI }/>
-                </button>
-                <span>Le nombre d'or</span>
-            </div> */}
-            {/* <button className="pi-btn">
-            Feigenbaum (δδ
-                <img src={piLogo} onClick={ loadPI }/>
-            </button>
-            <button className="pi-btn">
-            Euler-Mascheroni (γγ)
-                <img src={piLogo} onClick={ loadPI }/>
-            </button> */}
         </div>
     )
 }

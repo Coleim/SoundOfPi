@@ -17,6 +17,9 @@
 .const-btn {
     border: 5px solid rgb(34, 107, 171);
     background-color: aliceblue;
+    padding: 0px;
+    width: 100px;
+    height: 100px;
     img {
         width: 50px;
         height: 50px;
