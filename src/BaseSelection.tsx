@@ -1,9 +1,9 @@
-import { useStore } from "@tanstack/react-store";
-import { base } from "./base";
+// import { useStore } from "@tanstack/react-store";
+// import { base } from "./base";
 
 function BaseSelection() {
 
-    const currentBase: number = useStore(base, (state) => state.currentBase);
+    // const currentBase: number = useStore(base, (state) => state.currentBase);
 
     return (
         <div className="all-constants">

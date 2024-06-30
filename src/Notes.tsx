@@ -1,6 +1,5 @@
 import { useStore } from '@tanstack/react-store';
 import { musicSheet } from './music-sheet';
-import { popNote } from './music-sheet';
 import './Notes.css'
 
 function Notes() {
