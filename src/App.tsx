@@ -16,6 +16,11 @@ function App() {
       {/* contains the play / pause / stop buttons and actually play the audio */}
       <Player />
 
+      <div className="links">
+        <a href="https://github.com/Coleim/SoundOfPi">Source code</a>
+        <a href="https://www.youtube.com/channel/UC7gONNmO3yddJWsk4kxuJJQ">How I did it</a>
+      </div>
+
     </div>
   )
 }

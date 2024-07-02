@@ -7,3 +7,16 @@
 h1 {
   padding: 10px
 }
+
+.links {
+  display: flex;
+  flex-direction: column;
+  margin: 20px;
+  align-items: center;
+  justify-content: center;
+  a {
+    margin: 10px;
+    color: rgb(171, 230, 236);
+  }
+
+}
