@@ -11,7 +11,7 @@ import phiLogo from './assets/nombre-d-or-phi-01.png'
 
 import piSon from './assets/pi.json'
 import eSon from './assets/e.json'
-import phiSon from './assets/phi_small.json'
+import phiSon from './assets/phi.json'
 
 
 function ConstantSelection() {
