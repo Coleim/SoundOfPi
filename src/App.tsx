@@ -18,7 +18,7 @@ function App() {
 
       <div className="links">
         <a href="https://github.com/Coleim/SoundOfPi">Source code</a>
-        <a href="https://www.youtube.com/channel/UC7gONNmO3yddJWsk4kxuJJQ">How I did it</a>
+        <a href="https://www.youtube.com/watch?v=oRqzqRZCOB0">How I did it</a>
       </div>
 
     </div>
