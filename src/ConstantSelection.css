@@ -15,7 +15,7 @@
 }
 
 .const-btn {
-    border: 5px solid rgb(34, 107, 171);
+    border: 5px solid transparent;
     background-color: aliceblue;
     padding: 0px;
     width: 100px;
@@ -30,6 +30,10 @@
     cursor: pointer;
 }
 
+.const-btn--selected {
+    border: 5px solid rgb(34, 107, 171) !important;
+}
+
 .const-btn:hover {
-    background-color: rgb(34, 107, 171);
+    background-color: rgba(34, 107, 171, 0.5);
 }

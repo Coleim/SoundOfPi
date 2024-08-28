@@ -1,7 +1,7 @@
 // import { useStore } from "@tanstack/react-store";
 // import { base } from "./base";
 
-function BaseSelection() {
+export function BaseSelection() {
 
     // const currentBase: number = useStore(base, (state) => state.currentBase);
 
@@ -13,4 +13,3 @@ function BaseSelection() {
     )
 }
 
-export default BaseSelection
